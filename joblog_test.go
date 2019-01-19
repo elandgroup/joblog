@@ -16,6 +16,7 @@ func TestLog(t *testing.T) {
 	//1.test normal logic
 	jobLog := joblog.New(url,
 		"test", map[string]interface{}{"log": "this is test"})
+
 	err := jobLog.Info("good")
 	test.Ok(t, err)
 
@@ -23,6 +24,9 @@ func TestLog(t *testing.T) {
 	test.Ok(t, err)
 
 	err = jobLog.Error(errors.New("this is bug."))
+	test.Ok(t, err)
+
+	err = jobLog.Finish()
 	test.Ok(t, err)
 
 	//2.test Disable:this content will not be logged
