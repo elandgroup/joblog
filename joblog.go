@@ -86,13 +86,13 @@ func (r *JobLog) write(message interface{}, level string) (err error) {
 	}
 	url := fmt.Sprintf("%v/%v/logs", r.url, r.JobId)
 	_, err = httpreq.New(http.MethodPost, url, &messageLevel{
-		Message: ToString(message),
+		Message: toString(message),
 		Level:   level,
 	}).Call(nil)
 	return
 }
 
-func (r *JobLog) Finish(jobId int64) (err error) {
+func (r *JobLog) Finish() (err error) {
 	if r.Err != nil {
 		err = r.Err
 		return
@@ -105,7 +105,7 @@ func (r *JobLog) Finish(jobId int64) (err error) {
 	return
 }
 
-func ToString(raw interface{}) string {
+func toString(raw interface{}) string {
 	switch v := raw.(type) {
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, bool, float32, float64:
 		return fmt.Sprint(v)
