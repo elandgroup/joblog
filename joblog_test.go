@@ -5,8 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ElandGroup/joblog"
-
+	"github.com/elandgroup/joblog"
 	"github.com/pangpanglabs/goutils/test"
 )
 
@@ -16,7 +15,6 @@ func TestLog(t *testing.T) {
 	//1.test normal logic
 	jobLog := joblog.New(url,
 		"test", map[string]interface{}{"log": "this is test"})
-
 	err := jobLog.Info("good")
 	test.Ok(t, err)
 
