@@ -13,8 +13,8 @@ import (
 type JobLog struct {
 	url         string
 	serviceName string
+	jobId       int64
 	Disable     bool
-	JobId       int64
 	Err         error
 }
 
@@ -28,7 +28,7 @@ type messageLevel struct {
 	Message string `json:"message"`
 }
 
-func New(url, serviceName string, param interface{}, options ...func(*JobLog)) (jobLog *JobLog) {
+func New(url, serviceName string, firstMessage interface{}, options ...func(*JobLog)) (jobLog *JobLog) {
 	jobLog = &JobLog{
 		url:         url,
 		serviceName: serviceName,
@@ -49,19 +49,19 @@ func New(url, serviceName string, param interface{}, options ...func(*JobLog)) (
 	var result struct {
 		Result int64 `json:"result"`
 	}
-	if ok, kind := validParam(param); !ok {
-		jobLog.Err = fmt.Errorf("param type act:%v,exp:%v.",
+	if ok, kind := validParam(firstMessage); !ok {
+		jobLog.Err = fmt.Errorf("firstMessage type act:%v,exp:%v.",
 			kind, "Struct, Map, Ptr")
 		return
 	}
 	_, jobLog.Err = httpreq.New(http.MethodPost, jobLog.url, &jobStartDto{
 		Servcie: jobLog.serviceName,
-		Param:   param,
+		Param:   firstMessage,
 	}).Call(&result)
 	if jobLog.Err != nil {
 		return
 	}
-	jobLog.JobId = result.Result
+	jobLog.jobId = result.Result
 	return
 }
 
@@ -77,14 +77,17 @@ func (r *JobLog) Error(message interface{}) error {
 }
 
 func (r *JobLog) write(message interface{}, level string) (err error) {
+	if r.Disable == true {
+		return
+	}
 	if r.Err != nil {
 		err = r.Err
 		return
 	}
-	if r.Disable == true {
+	if r.jobId == int64(0) {
 		return
 	}
-	url := fmt.Sprintf("%v/%v/logs", r.url, r.JobId)
+	url := fmt.Sprintf("%v/%v/logs", r.url, r.jobId)
 	_, err = httpreq.New(http.MethodPost, url, &messageLevel{
 		Message: toString(message),
 		Level:   level,
@@ -93,14 +96,17 @@ func (r *JobLog) write(message interface{}, level string) (err error) {
 }
 
 func (r *JobLog) Finish() (err error) {
+	if r.Disable == true {
+		return
+	}
 	if r.Err != nil {
 		err = r.Err
 		return
 	}
-	if r.Disable == true {
+	if r.jobId == int64(0) {
 		return
 	}
-	url := fmt.Sprintf("%v/%v/finish", r.url, r.JobId)
+	url := fmt.Sprintf("%v/%v/finish", r.url, r.jobId)
 	httpreq.New(http.MethodPost, url, nil).Call(nil)
 	return
 }
