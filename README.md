@@ -5,7 +5,13 @@ log print for eland job monitor
 ## Getting Started
 
 ```golang
-jobLog := joblog.New(url,"test", map[string]interface{}{"log": "this is test"})
+//new with serviceName
+jobLog := joblog.New(url, "test", map[string]interface{}{"log": "this is test"})
+//new with serviceName&jobName&actionName
+jobLog = joblog.New(url, "test", map[string]interface{}{"log": "this is test 2"}, func(log *joblog.JobLog) {
+			log.JobName = "JobName"
+			log.ActionName = "ActionName"
+		})
 
 err := jobLog.Info("good")
 test.Ok(t, err)

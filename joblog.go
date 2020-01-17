@@ -13,14 +13,18 @@ import (
 type JobLog struct {
 	url         string
 	serviceName string
+	JobName     string
+	ActionName  string
 	jobId       int64
 	Disable     bool
 	Err         error
 }
 
 type jobStartDto struct {
-	Servcie string      `json:"service"`
-	Param   interface{} `json:"param"`
+	ServiceName string      `json:"service"`
+	JobName     string      `json:"job"`
+	ActionName  string      `json:"action"`
+	Param       interface{} `json:"param"`
 }
 
 type messageLevel struct {
@@ -55,7 +59,9 @@ func New(url, serviceName string, firstMessage interface{}, options ...func(*Job
 		return
 	}
 	_, jobLog.Err = httpreq.New(http.MethodPost, jobLog.url, &jobStartDto{
-		Servcie: jobLog.serviceName,
+		ServiceName: jobLog.serviceName,
+		JobName:     jobLog.JobName,
+		ActionName:  jobLog.ActionName,
 		Param:   firstMessage,
 	}).Call(&result)
 	if jobLog.Err != nil {

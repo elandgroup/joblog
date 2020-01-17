@@ -30,8 +30,11 @@ func TestLog(t *testing.T) {
 	//2.test Disable:this content will not be logged
 	jobLog = joblog.New(url,
 		"test", map[string]interface{}{"log": "this is test 2"}, func(log *joblog.JobLog) {
+			log.JobName = "JobName"
+			log.ActionName = "ActionName"
 			log.Disable = true
 		})
+	test.Ok(t, jobLog.Err)
 	err = jobLog.Info("good 2")
 	test.Ok(t, err)
 
