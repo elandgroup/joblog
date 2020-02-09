@@ -58,13 +58,18 @@ func New(url, serviceName string, firstMessage interface{}, options ...func(*Job
 			kind, "Struct, Map, Ptr")
 		return
 	}
-	_, jobLog.Err = httpreq.New(http.MethodPost, jobLog.url, &jobStartDto{
+	status, err := httpreq.New(http.MethodPost, jobLog.url, &jobStartDto{
 		ServiceName: jobLog.serviceName,
 		JobName:     jobLog.JobName,
 		ActionName:  jobLog.ActionName,
 		Param:   firstMessage,
 	}).Call(&result)
-	if jobLog.Err != nil {
+	if err != nil {
+		jobLog.Err=err
+		return
+	}
+	if status != http.StatusOK{
+		jobLog.Err= fmt.Errorf("request err,status is %v",status)
 		return
 	}
 	jobLog.jobId = result.Result
@@ -94,10 +99,17 @@ func (r *JobLog) write(message interface{}, level string) (err error) {
 		return
 	}
 	url := fmt.Sprintf("%v/%v/logs", r.url, r.jobId)
-	_, err = httpreq.New(http.MethodPost, url, &messageLevel{
+	status, err := httpreq.New(http.MethodPost, url, &messageLevel{
 		Message: toString(message),
 		Level:   level,
 	}).Call(nil)
+	if err != nil {
+		return
+	}
+	if status != http.StatusNoContent{
+		err= fmt.Errorf("request err,status is %v",status)
+		return
+	}
 	return
 }
 
@@ -113,7 +125,14 @@ func (r *JobLog) Finish() (err error) {
 		return
 	}
 	url := fmt.Sprintf("%v/%v/finish", r.url, r.jobId)
-	httpreq.New(http.MethodPost, url, nil).Call(nil)
+	status, err :=httpreq.New(http.MethodPost, url, nil).Call(nil)
+	if err != nil {
+		return
+	}
+	if status != http.StatusNoContent{
+		err= fmt.Errorf("request err,status is %v",status)
+		return
+	}
 	return
 }
 
